@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script src="https://unpkg.com/qr-scanner@1.2.1/umd/qr-scanner.min.js"></script>
+  </head>
+  <body>
+    <div>
+      <label>Job Number:</label>
+      <input type="text" id="jobNumber">
+    </div>
+    <div>
+      <label>Email or Name:</label>
+      <input type="text" id="emailOrName">
+    </div>
+    <button id="scanButton">Scan QR Code</button>
+    <div id="qrCodeResult"></div>
+    <video id="qrVideo" hidden></video>
+    <script>
+      QRScanner.WORKER_PATH = 'https://unpkg.com/qr-scanner@1.2.1/umd/qr-scanner-worker.min.js';
+      const videoElem = document.getElementById('qrVideo');
+      const qrScanner = new QRScanner(videoElem, (decodedText, decodedResult) => {
+        console.log('QR code scanned:', decodedText);
+        document.getElementById('qrCodeResult').innerHTML = decodedText;
+        saveData();
+      });
+
+      document.getElementById('scanButton').addEventListener('click', async function() {
+        console.log('scanButton clicked');
+        try {
+          console.log('Starting QR scanner...');
+          await qrScanner.start();
+          videoElem.hidden = false;
+          console.log('QR scanner started successfully');
+        } catch (error) {
+          console.error('Failed to start QR scanning:', error);
+        }
+      });
+
+      function saveData() {
+        var jobNumber = document.getElementById('jobNumber').value;
+        var emailOrName = document.getElementById('emailOrName').value;
+        var qrCodeValue = document.getElementById('qrCodeResult').innerHTML;
+
+        if (jobNumber && emailOrName && qrCodeValue) {
+          google.script.run.saveDataToSheet(jobNumber, emailOrName, qrCodeValue);
+          alert('Data saved to Google Sheet.');
+        } else {
+          alert('Please fill in all fields and scan a QR code.');
+        }
+      }
+    </script>
+  </body>
+</html>
+
