@@ -1,55 +1,49 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/instascan/1.0.0/instascan.min.js"></script>
-  </head>
-  <body>
-    <div>
-      <label>Job Number:</label>
-      <input type="text" id="jobNumber">
-    </div>
-    <div>
-      <label>Email or Name:</label>
-      <input type="text" id="emailOrName">
-    </div>
-    <button id="scanButton">Scan QR Code</button>
-    <div id="qrCodeResult"></div>
-    <video id="qrVideo" hidden></video>
-    <script>
-      QRScanner.WORKER_PATH = 'https://unpkg.com/qr-scanner@1.2.1/umd/qr-scanner-worker.min.js';
-      const videoElem = document.getElementById('qrVideo');
-      const qrScanner = new QRScanner(videoElem, (decodedText, decodedResult) => {
-        console.log('QR code scanned:', decodedText);
-        document.getElementById('qrCodeResult').innerHTML = decodedText;
-        saveData();
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Scanner</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/instascan/1.0.0/instascan.min.js"></script>
+  <style>
+    #preview {
+      width: 100%;
+      max-width: 500px;
+      height: 500px;
+      background-color: black;
+    }
+  </style>
+</head>
+<body>
+  <h1>QR Code Scanner</h1>
+  <p>Job Number: <input type="text" id="job-number"></p>
+  <p>Email or Name: <input type="text" id="email-name"></p>
+  <button id="scan-qr">Scan QR Code</button>
+  <div id="preview"></div>
+  <p>QR Code Result: <span id="qr-result"></span></p>
+  <button id="submit-data">Submit Data</button>
+
+  <script>
+    document.getElementById("scan-qr").addEventListener("click", function () {
+      let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
+      scanner.addListener('scan', function (content) {
+        console.log('QR code content:', content);
+        document.getElementById("qr-result").innerText = content;
       });
-
-      document.getElementById('scanButton').addEventListener('click', async function() {
-        console.log('scanButton clicked');
-        try {
-          console.log('Starting QR scanner...');
-          await qrScanner.start();
-          videoElem.hidden = false;
-          console.log('QR scanner started successfully');
-        } catch (error) {
-          console.error('Failed to start QR scanning:', error);
-        }
-      });
-
-      function saveData() {
-        var jobNumber = document.getElementById('jobNumber').value;
-        var emailOrName = document.getElementById('emailOrName').value;
-        var qrCodeValue = document.getElementById('qrCodeResult').innerHTML;
-
-        if (jobNumber && emailOrName && qrCodeValue) {
-          google.script.run.saveDataToSheet(jobNumber, emailOrName, qrCodeValue);
-          alert('Data saved to Google Sheet.');
+      Instascan.Camera.getCameras().then(function (cameras) {
+        if (cameras.length > 0) {
+          scanner.start(cameras[0]);
         } else {
-          alert('Please fill in all fields and scan a QR code.');
+          console.error('No cameras found.');
         }
-      }
-    </script>
-  </body>
-</html>
+      }).catch(function (e) {
+        console.error(e);
+      });
+    });
 
+    document.getElementById("submit-data").addEventListener("click", function () {
+      // Your existing code to submit data to Google Sheets goes here.
+    });
+  </script>
+</body>
+</html>
