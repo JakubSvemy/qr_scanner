@@ -1,49 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Scanner</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/instascan/1.0.0/instascan.min.js"></script>
-  <style>
-    #preview {
-      width: 100%;
-      max-width: 500px;
-      height: 500px;
-      background-color: black;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <style>
+        #preview {
+            width: 100%;
+            max-width: 500px;
+            height: 500px;
+            background-color: black;
+        }
+    </style>
+    <script src="jsQR.min.js"></script>
 </head>
 <body>
-  <h1>QR Code Scanner</h1>
-  <p>Job Number: <input type="text" id="job-number"></p>
-  <p>Email or Name: <input type="text" id="email-name"></p>
-  <button id="scan-qr">Scan QR Code</button>
-  <div id="preview"></div>
-  <p>QR Code Result: <span id="qr-result"></span></p>
-  <button id="submit-data">Submit Data</button>
+    <h1>QR Code Scanner</h1>
+    <p>Job Number: <input type="text" id="job-number"></p>
+    <p>Email or Name: <input type="text" id="email-name"></p>
+    <button id="scan-qr">Scan QR Code</button>
+    <canvas id="preview"></canvas>
+    <p>QR Code Result: <span id="qr-result"></span></p>
+    <button id="submit-data">Submit Data</button>
 
-  <script>
-    document.getElementById("scan-qr").addEventListener("click", function () {
-      let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
-      scanner.addListener('scan', function (content) {
-        console.log('QR code content:', content);
-        document.getElementById("qr-result").innerText = content;
-      });
-      Instascan.Camera.getCameras().then(function (cameras) {
-        if (cameras.length > 0) {
-          scanner.start(cameras[0]);
-        } else {
-          console.error('No cameras found.');
+    <script>
+        const video = document.createElement("video");
+        const canvasElement = document.getElementById("preview");
+        const canvas = canvasElement.getContext("2d");
+
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.hidden = false;
+
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+
+                if (code) {
+                    document.getElementById("qr-result").innerText = code.data;
+                }
+            }
+            requestAnimationFrame(tick);
         }
-      }).catch(function (e) {
-        console.error(e);
-      });
-    });
 
-    document.getElementById("submit-data").addEventListener("click", function () {
-      // Your existing code to submit data to Google Sheets goes here.
-    });
-  </script>
+        document.getElementById("scan-qr").addEventListener("click", function () {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                video.play();
+                requestAnimationFrame(tick);
+            });
+        });
+
+        document.getElementById("submit-data").addEventListener("click", function () {
+            // Your existing code to submit data to Google Sheets goes here.
+        });
+    </script>
 </body>
 </html>
