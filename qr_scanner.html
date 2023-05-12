@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <audio id="beep" src="beep.mp3" preload="auto"></audio>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
@@ -27,6 +28,31 @@
         const video = document.createElement("video");
         const canvasElement = document.getElementById("preview");
         const canvas = canvasElement.getContext("2d");
+        const result = document.getElementById("qr-result");
+
+        function onScan(qrCode) {
+            if (qrCode) {
+                video.pause();
+                video.srcObject.getTracks().forEach(track => track.stop());
+                canvasElement.hidden = true;
+                result.innerText = qrCode;
+
+                // Play the beep sound
+                document.getElementById('beep').play();
+
+                // Display a message
+                const message = document.createElement('div');
+                message.innerText = 'QR code scanned successfully!';
+                message.style.fontSize = '24px';
+                message.style.color = 'green';
+                result.appendChild(message);
+
+                // Remove the message after 3 seconds
+                setTimeout(() => {
+                    message.remove();
+                }, 3000);
+            }
+        }
 
         function tick() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
@@ -39,10 +65,13 @@
                 const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
                 if (code) {
-                    document.getElementById("qr-result").innerText = code.data;
+                    onScan(code.data);
+                } else {
+                    requestAnimationFrame(tick);
                 }
+            } else {
+                requestAnimationFrame(tick);
             }
-            requestAnimationFrame(tick);
         }
 
         document.getElementById("scan-qr").addEventListener("click", function () {
