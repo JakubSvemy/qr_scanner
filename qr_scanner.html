@@ -30,8 +30,8 @@
         const canvas = canvasElement.getContext("2d");
         const result = document.getElementById("qr-result");
 
-        function onScan(qrCode) {
-    if (qrCode) {
+       function onScan(qrCode) {
+        if (qrCode) {
         video.pause();
         video.srcObject.getTracks().forEach(track => track.stop());
         canvasElement.hidden = true;
@@ -47,13 +47,18 @@
         message.style.color = 'green';
         result.appendChild(message);
 
-        // Check if QR code contains "_"
-        if (qrCode.includes("*")) {
-            const warning = document.createElement('div');
-            warning.innerText = 'WARNING: You need to bring special accessories for the job!';
-            warning.style.fontSize = '30px';
-            warning.style.color = 'red';
-            result.appendChild(warning);
+        // Check if QR code contains "*"
+            if (qrCode.includes("*")) {
+                const warning = document.createElement('div');
+                warning.innerText = 'WARNING: You need to bring special accessories for the job!';
+                warning.style.fontSize = '30px';
+                warning.style.color = 'red';
+                result.appendChild(warning);
+
+            // Remove the warning message after 3 seconds
+            setTimeout(() => {
+                warning.remove();
+            }, 3000);
         }
 
         // Remove the message after 3 seconds
@@ -62,7 +67,6 @@
         }, 3000);
     }
 }
-
 
         function tick() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
