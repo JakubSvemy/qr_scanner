@@ -18,6 +18,12 @@
         h1 {
             text-align: center;
         }
+        img {
+            display: block;
+            margin: 20px auto;
+            max-width: 70%;
+            height: auto;
+        }
         p {
             text-align: center;
             margin: 15px 0;
@@ -29,6 +35,9 @@
             margin: 10px auto;
             padding: 10px;
             font-size: 16px;
+            border: 2px solid #333300; /* Yellow-black-ish color */
+            background-color: #ffffff; /* White */
+            color: #333300; /* Yellow-black-ish color */
         }
         input[type="text"] {
             width: 80%;
@@ -36,12 +45,14 @@
             margin: auto;
             display: block;
             padding: 5px;
+            border: 2px solid #333300; /* Yellow-black-ish color */
         }
     </style>
     <script src="jsQR.min.js"></script>
 </head>
 <body>
     <h1>QR Code Scanner</h1>
+    <img src="LOGO_black.png" alt="Logo">
     <p>Job Number: <input type="text" id="job-number"></p>
     <p>Email or Name: <input type="text" id="email-name"></p>
     <button id="scan-qr">Scan QR Code</button>
@@ -50,7 +61,7 @@
     <button id="submit-data">Submit Data</button>
 
     <script>
-            const video = document.createElement("video");
+        const video = document.createElement("video");
         const canvasElement = document.getElementById("preview");
         const canvas = canvasElement.getContext("2d");
         const result = document.getElementById("qr-result");
