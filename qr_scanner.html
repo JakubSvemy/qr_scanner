@@ -31,28 +31,38 @@
         const result = document.getElementById("qr-result");
 
         function onScan(qrCode) {
-            if (qrCode) {
-                video.pause();
-                video.srcObject.getTracks().forEach(track => track.stop());
-                canvasElement.hidden = true;
-                result.innerText = qrCode;
+    if (qrCode) {
+        video.pause();
+        video.srcObject.getTracks().forEach(track => track.stop());
+        canvasElement.hidden = true;
+        result.innerText = qrCode;
 
-                // Play the beep sound
-                document.getElementById('beep').play();
+        // Play the beep sound
+        document.getElementById('beep').play();
 
-                // Display a message
-                const message = document.createElement('div');
-                message.innerText = 'QR code scanned successfully!';
-                message.style.fontSize = '24px';
-                message.style.color = 'green';
-                result.appendChild(message);
+        // Display a message
+        const message = document.createElement('div');
+        message.innerText = 'QR code scanned successfully!';
+        message.style.fontSize = '24px';
+        message.style.color = 'green';
+        result.appendChild(message);
 
-                // Remove the message after 3 seconds
-                setTimeout(() => {
-                    message.remove();
-                }, 3000);
-            }
+        // Check if QR code contains "_"
+        if (qrCode.includes("_")) {
+            const warning = document.createElement('div');
+            warning.innerText = 'WARNING: You need to bring special accessories for the job!';
+            warning.style.fontSize = '30px';
+            warning.style.color = 'red';
+            result.appendChild(warning);
         }
+
+        // Remove the message after 3 seconds
+        setTimeout(() => {
+            message.remove();
+        }, 3000);
+    }
+}
+
 
         function tick() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
@@ -110,4 +120,3 @@
     </script>
 </body>
 </html>
-
