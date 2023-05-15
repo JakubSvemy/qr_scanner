@@ -47,6 +47,15 @@
             padding: 5px;
             border: 2px solid #333300; /* Yellow-black-ish color */
         }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 5px 0;
+            padding: 5px;
+            border: 1px solid #333300;
+        }
     </style>
     <script src="jsQR.min.js"></script>
 </head>
@@ -59,101 +68,117 @@
     <canvas id="preview"></canvas>
     <p>QR Code Result: <span id="qr-result"></span></p>
     <button id="submit-data">Submit Data</button>
+    <h2>Scanned QR Codes:</h2>
+    <ul id="qr-codes"></ul>
 
-    <script>
-        const video = document.createElement("video");
-        const canvasElement = document.getElementById("preview");
-        const canvas = canvasElement.getContext("2d");
-        const result = document.getElementById("qr-result");
+    <script>    
+    const video = document.createElement("video");
+    const canvasElement = document.getElementById("preview");
+    const canvas = canvasElement.getContext("2d");
+    const result = document.getElementById("qr-result");
 
-        function onScan(qrCode) {
-    if (qrCode) {
-        video.pause();
-        video.srcObject.getTracks().forEach(track => track.stop());
-        canvasElement.hidden = true;
-        result.innerText = qrCode;
+    // Create an array to store the QR codes
+    const qrCodes = [];
 
-        // Play the beep sound
-        document.getElementById('beep').play();
+    function onScan(qrCode) {
+        if (qrCode) {
+            video.pause();
+            video.srcObject.getTracks().forEach(track => track.stop());
+            canvasElement.hidden = true;
 
-        // Display a message
-        const message = document.createElement('div');
-        message.innerText = 'QR code scanned successfully!';
-        message.style.fontSize = '24px';
-        message.style.color = 'green';
-        result.appendChild(message);
+            // Save the QR code to the array
+            qrCodes.push(qrCode);
 
-        // Check if QR code contains "_" or "*"
-        if (qrCode.includes("_") || qrCode.includes("*")) { // Check for both "_" and "*"
-            const warning = document.createElement('div');
-            warning.innerText = 'WARNING: You need to bring special accessories for the job!';
-            warning.style.fontSize = '30px';
-            warning.style.color = 'red';
-            result.appendChild(warning);
+            // Display the QR codes
+            const qrCodesElement = document.getElementById("qr-codes");
+            qrCodesElement.innerHTML = '';
+            qrCodes.forEach((code, index) => {
+                const li = document.createElement('li');
+                li.innerText = `QR Code ${index + 1}: ${code}`;
+                qrCodesElement.appendChild(li);
+            });
+
+            // Play the beep sound
+            document.getElementById('beep').play();
+
+            // Display a message
+            const message = document.createElement('div');
+            message.innerText = 'QR code scanned successfully!';
+            message.style.fontSize = '24px';
+            message.style.color = 'green';
+            result.appendChild(message);
+
+            // Check if QR code contains "*" or "_"
+            if (qrCode.includes("*") || qrCode.includes("_")) {
+                const warning = document.createElement('div');
+                warning.innerText = 'WARNING: You need to bring special accessories for the job!';
+                warning.style.fontSize = '30px';
+                warning.style.color = 'red';
+                result.appendChild(warning);
+            }
+
+            // Remove the message after 3 seconds
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
         }
-
-        // Remove the message after 3 seconds
-        setTimeout(() => {
-            message.remove();
-        }, 3000);
     }
-}
 
 
+    function tick() {
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvasElement.hidden = false;
 
-        function tick() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvasElement.hidden = false;
+            canvasElement.height = video.videoHeight;
+            canvasElement.width = video.videoWidth;
+            canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
-                canvasElement.height = video.videoHeight;
-                canvasElement.width = video.videoWidth;
-                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-
-                if (code) {
-                    onScan(code.data);
-                } else {
-                    requestAnimationFrame(tick);
-                }
+            if (code) {
+                onScan(code.data);
             } else {
                 requestAnimationFrame(tick);
             }
+        } else {
+            requestAnimationFrame(tick);
         }
+    }
 
-        document.getElementById("scan-qr").addEventListener("click", function () {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-                video.play();
-                requestAnimationFrame(tick);
-            });
+    document.getElementById("scan-qr").addEventListener("click", function () {
+        canvasElement.hidden = false;
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+            video.srcObject = stream;
+            video.setAttribute("playsinline", true);
+            video.play();
+            requestAnimationFrame(tick);
         });
+    });
 
-        document.getElementById("submit-data").addEventListener("click", function () {
-            const url = 'https://script.google.com/macros/s/AKfycbwCt-qcdYfSa_kTfvr_r-bRMiRUbWEVu5dmNN5FX0qCebKhKtJLj5fUnLaPVQIHI1jG/exec'; // replace with your web app URL
-            const data = {
-                job_number: document.getElementById("job-number").value,
-                email_name: document.getElementById("email-name").value,
-                qr_result: document.getElementById("qr-result").innerText
-            };
+    document.getElementById("submit-data").addEventListener("click", function () {
+        const url = 'https://script.google.com/macros/s/AKfycbwCt-qcdYfSa_kTfvr_r-bRMiRUbWEVu5dmNN5FX0qCebKhKtJLj5fUnLaPVQIHI1jG/exec'; // replace with your web app URL
+        const data = {
+            job_number: document.getElementById("job-number").value,
+            email_name: document.getElementById("email-name").value,
+            qr_result: qrCodes.join(", ")
+        };
 
-            fetch(url, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                headers :               {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                console.log('Success:', response);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+        fetch(url, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers : {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            console.log('Success:', response);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
         });
+    });
     </script>
 </body>
 </html>
