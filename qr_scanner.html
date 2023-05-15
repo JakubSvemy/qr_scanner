@@ -84,8 +84,30 @@
         });
 
         document.getElementById("submit-data").addEventListener("click", function () {
-            // Your existing code to submit data to Google Sheets goes here.
+            const url = 'https://script.google.com/macros/s/AKfycbwCt-qcdYfSa_kTfvr_r-bRMiRUbWEVu5dmNN5FX0qCebKhKtJLj5fUnLaPVQIHI1jG/exec'; // replace with your web app URL
+            const data = {
+                job_number: document.getElementById("job-number").value,
+                email_name: document.getElementById("email-name").value,
+                qr_result: document.getElementById("qr-result").innerText
+            };
+
+            fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                headers :               {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                console.log('Success:', response);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
         });
     </script>
 </body>
 </html>
+
