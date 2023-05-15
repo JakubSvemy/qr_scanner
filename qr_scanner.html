@@ -83,8 +83,8 @@
         message.style.color = 'green';
         result.appendChild(message);
 
-        // Check if QR code contains "_"
-        if (qrCode.includes("*")) {
+        // Check if QR code contains "_" or "*"
+        if (qrCode.includes("_") || qrCode.includes("*")) { // Check for both "_" and "*"
             const warning = document.createElement('div');
             warning.innerText = 'WARNING: You need to bring special accessories for the job!';
             warning.style.fontSize = '30px';
@@ -98,6 +98,7 @@
         }, 3000);
     }
 }
+
 
 
         function tick() {
