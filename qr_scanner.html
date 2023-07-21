@@ -77,36 +77,52 @@
     const canvas = canvasElement.getContext("2d");
     const result = document.getElementById("qr-result");
 
+    // Example data for QR code check
+
+    const data = [];
+
     // Create an array to store the QR codes
     const qrCodes = [];
 
     function onScan(qrCode) {
-        if (qrCode) {
-            video.pause();
-            video.srcObject.getTracks().forEach(track => track.stop());
-            canvasElement.hidden = true;
+    if (qrCode) {
+        video.pause();
+        video.srcObject.getTracks().forEach(track => track.stop());
+        canvasElement.hidden = true;
 
-            // Save the QR code to the array
-            qrCodes.push(qrCode);
+        // Save the QR code to the array
+        qrCodes.push(qrCode);
 
-            // Display the QR codes
-            const qrCodesElement = document.getElementById("qr-codes");
-            qrCodesElement.innerHTML = '';
-            qrCodes.forEach((code, index) => {
-                const li = document.createElement('li');
-                li.innerText = `QR Code ${index + 1}: ${code}`;
-                qrCodesElement.appendChild(li);
+        // Display the QR codes
+        const qrCodesElement = document.getElementById("qr-codes");
+        qrCodesElement.innerHTML = '';
+        qrCodes.forEach((code, index) => {
+            const li = document.createElement('li');
+            li.innerText = `QR Code ${index + 1}: ${code}`;
+            qrCodesElement.appendChild(li);
+        });
+
+        // Play the beep sound
+        document.getElementById('beep').play();
+
+        // Find the QR code in the data
+        const matchingRow = data.find(row => row['Bar CODE TEXT'] === qrCode);
+
+        // If there is a matching row
+        if (matchingRow) {
+            // The columns to be displayed
+            const columns = ['Consumables', 'Accessories'];
+
+            columns.forEach(column => {
+                const value = matchingRow[column];
+
+                // If the value is not "N/A", display it
+                if (value !== 'N/A') {
+                    const div = document.createElement('div');
+                    div.innerText = `${column}: ${value}`;
+                    result.appendChild(div);
+                }
             });
-
-            // Play the beep sound
-            document.getElementById('beep').play();
-
-            // Display a message
-            const message = document.createElement('div');
-            message.innerText = 'QR code scanned successfully!';
-            message.style.fontSize = '24px';
-            message.style.color = 'green';
-            result.appendChild(message);
 
             // Check if QR code contains "*" or "_"
             if (qrCode.includes("*") || qrCode.includes("_")) {
@@ -116,14 +132,21 @@
                 warning.style.color = 'red';
                 result.appendChild(warning);
             }
-
-            // Remove the message after 3 seconds
-            setTimeout(() => {
-                message.remove();
-            }, 3000);
+        } else {
+            // If there is no matching row
+            const message = document.createElement('div');
+            message.innerText = 'Nothing special required';
+            message.style.fontSize = '24px';
+            message.style.color = 'green';
+            result.appendChild(message);
         }
-    }
 
+        // Remove the message after 3 seconds
+        setTimeout(() => {
+            result.innerHTML = '';
+        }, 3000);
+    }
+}
 
     function tick() {
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
