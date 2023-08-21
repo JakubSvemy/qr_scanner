@@ -5,7 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
-    <style>
+    <style>        
+        #qr-result-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: rgb(0, 255, 21);
+        margin-top: 15px;
+        }
+        .qr-code-value {
+        font-size: 20px;
+        color: black;
+        }
+        .field-title {
+        font-size: 22px;
+        color: rgb(0, 255, 21);
+        }
         body {
             background-color: #f0f0f0; /* Gray-ish color */
             font-family: Arial, sans-serif;
@@ -56,6 +70,12 @@
             padding: 5px;
             border: 1px solid #333300;
         }
+        #qr-result {
+        font-size: 20px;
+        font-weight: bold;
+        color: rgb(0, 4, 255);
+        margin-top: 15px;
+        }
     </style>
     <script src="jsQR.min.js"></script>
 </head>
@@ -68,8 +88,11 @@
     <canvas id="preview"></canvas>
     <p>QR Code Result: <span id="qr-result"></span></p>
     <button id="show-summary">Show Summary</button>
-    <h2>Scanned QR Codes:</h2>
+    <h2>Scanned QR Codes: <span id="shopping-list-label"></span></h2>
+    <h3>Accessories:</h3>
     <ul id="accessories-list"></ul>
+    <h3>Consumables:</h3>
+    <ul id="consumables-list"></ul>
 
     <script>    
 
@@ -606,13 +629,30 @@
    // Variables for storing QR codes and scanned accessories
 const qrCodes = [];
 const scannedAccessories = [];
+const scannedConsumables = [];
+const scannedResults = [];
 
 function onScan(qrCode) {
     if (qrCode) {
         video.pause();
         video.srcObject.getTracks().forEach(track => track.stop());
         canvasElement.hidden = true;
+        
+        // Clear previous content
+        result.innerHTML = '';
 
+        // Display the "QR Code Result" title in yellow and bold
+        const titleDiv = document.createElement('div');
+        titleDiv.innerText = "QR Code Result:";
+        titleDiv.id = "qr-result-title";
+        result.appendChild(titleDiv);
+
+        // Display the scanned QR code value
+        const valueDiv = document.createElement('div');
+        valueDiv.innerText = qrCode;
+        valueDiv.className = "qr-code-value";
+        result.appendChild(valueDiv);
+        
         qrCodes.push(qrCode);
 
         const matchingEntry = qrDatabase.find(entry => entry['Bar CODE TEXT'] === qrCode);
@@ -621,16 +661,22 @@ function onScan(qrCode) {
             ['Consumables', 'Accessories', 'Notes'].forEach(field => {
                 const value = matchingEntry[field];
                 if (value) {
-                    const div = document.createElement('div');
-                    div.innerText = `${field}: ${value}`;
-                    result.appendChild(div);
+                    const fieldTitleDiv = document.createElement('div');
+                    fieldTitleDiv.innerText = field + ":";
+                    fieldTitleDiv.className = "field-title";
+                    result.appendChild(fieldTitleDiv);
+
+                    const fieldValueDiv = document.createElement('div');
+                    fieldValueDiv.innerText = value;
+                    result.appendChild(fieldValueDiv);
+
+                    if (field === 'Accessories') {
+                        scannedAccessories.push(value);
+                    } else if (field === 'Consumables') {
+                        scannedConsumables.push(value);
+                    }
                 }
             });
-
-            if (matchingEntry['Accessories']) {
-                scannedAccessories.push(matchingEntry['Accessories']);
-            }
-
         } else {
             const message = document.createElement('div');
             message.innerText = 'Nothing special required';
@@ -638,12 +684,28 @@ function onScan(qrCode) {
             message.style.color = 'green';
             result.appendChild(message);
         }
-
-        setTimeout(() => {
-            result.innerHTML = '';
-        }, 3000);
     }
 }
+
+
+function updateResultsDisplay() {
+    result.innerHTML = '';  // Clear previous results
+
+    scannedResults.forEach(entry => {
+        const div = document.createElement('div');
+
+        if (entry.message) {
+            div.innerText = entry.message;
+            div.style.fontSize = '24px';
+            div.style.color = 'green';
+        } else {
+            div.innerText = Object.keys(entry).map(key => `${key}: ${entry[key]}`).join(", ");
+        }
+
+        result.appendChild(div);
+    });
+}
+
 
 function tick() {
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
@@ -676,12 +738,51 @@ document.getElementById("scan-qr").addEventListener("click", function () {
 });
 
 document.getElementById("show-summary").addEventListener("click", function() {
+    // Add label
+    const shoppingListLabel = document.getElementById("shopping-list-label");
+    shoppingListLabel.innerHTML = '<span style="color:red; font-weight:bold;">Cross out shopping list</span>';
+
+    // Process and display unique Accessories
     const accessoriesList = document.getElementById("accessories-list");
     accessoriesList.innerHTML = ''; // Clear previous summary
-    
-    scannedAccessories.forEach((accessory, index) => {
+    const uniqueAccessories = [...new Set(scannedAccessories)];
+    uniqueAccessories.forEach(accessory => {
+        const count = scannedAccessories.filter(item => item === accessory).length;
         const li = document.createElement('li');
-        li.innerText = `Accessory ${index + 1}: ${accessory}`;
+        li.innerText = `${count > 1 ? count + ' x ' : ''}${accessory}`;
+        li.addEventListener("click", function() {
+            if (li.style.textDecoration === "line-through") {
+                li.style.textDecoration = "none";
+            } else {
+                li.style.textDecoration = "line-through";
+            }
+        });
+        accessoriesList.appendChild(li);
+    });
+
+    // Process and display unique Consumables
+    const consumablesList = document.getElementById("consumables-list");
+    consumablesList.innerHTML = ''; // Clear previous summary
+    const uniqueConsumables = [...new Set(scannedConsumables)];
+    uniqueConsumables.forEach(consumable => {
+        const count = scannedConsumables.filter(item => item === consumable).length;
+        const li = document.createElement('li');
+        li.innerText = `${count > 1 ? count + ' x ' : ''}${consumable}`;
+        li.addEventListener("click", function() {
+            if (li.style.textDecoration === "line-through") {
+                li.style.textDecoration = "none";
+            } else {
+                li.style.textDecoration = "line-through";
+            }
+        });
+        consumablesList.appendChild(li);
+    });
+});
+
+    // Display the counted accessories
+    for (let accessory in countedAccessories) {
+        const li = document.createElement('li');
+        li.innerText = `${countedAccessories[accessory]} x ${accessory}`;
         
         // Add click event to cross out the item
         li.addEventListener("click", function() {
@@ -693,8 +794,15 @@ document.getElementById("show-summary").addEventListener("click", function() {
         });
 
         accessoriesList.appendChild(li);
-    });
-});
+    }
+
+    // Add label next to "Scanned QR Codes"
+    const shoppingListLabel = document.getElementById("shopping-list-label");
+    shoppingListLabel.innerText = "Cross out shopping list";
+    shoppingListLabel.style.color = "red";
+    shoppingListLabel.style.fontWeight = "bold";
+
+
     </script>
 </body>
 </html>
