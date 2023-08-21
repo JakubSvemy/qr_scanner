@@ -67,73 +67,571 @@
     <button id="scan-qr">Scan QR Code</button>
     <canvas id="preview"></canvas>
     <p>QR Code Result: <span id="qr-result"></span></p>
-    <button id="submit-data">Submit Data</button>
+    <button id="show-summary">Show Summary</button>
     <h2>Scanned QR Codes:</h2>
-    <ul id="qr-codes"></ul>
+    <ul id="accessories-list"></ul>
 
     <script>    
+
+    // JSON database     
+
+    const qrDatabase = [
+
+    {
+        "Bar CODE TEXT":"Vertex Standard-1",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":"Take charger, store charged."
+    },
+    {
+        "Bar CODE TEXT":"Vertex Standard-2",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":"Take charger, store charged."
+    },
+    {
+        "Bar CODE TEXT":"Vertex Standard-3"
+        ,"Consumables":null,
+        "Accessories":null,
+        "Notes":"Take charger, store charged."
+    },
+    {
+        "Bar CODE TEXT":"Vertex Standard-4",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":"Take charger, store charged."
+    },
+    {
+        "Bar CODE TEXT":"Honda-1",
+        "Consumables":"Gasoline, Oil",
+        "Accessories":null,
+        "Notes":"Check oil, Premium gas only!"
+    },
+    {
+        "Bar CODE TEXT":"Makita-1",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Portable winch co.\\/Honda-1",
+        "Consumables":"Gasoline, Oil",
+        "Accessories":null,
+        "Notes":"Check oil, Premium gas only!"
+    }
+    ,{
+        "Bar CODE TEXT":"Makita-2",
+        "Consumables":"Cutting disc 14",
+        "Accessories":null,
+        "Notes":null
+    }
+    ,{
+        "Bar CODE TEXT":"Tank manufacturer-1"
+        ,"Consumables":null,
+        "Accessories":null,
+        "Notes":"for Cleaners, sealers,stains"
+    }
+    ,{
+        "Bar CODE TEXT":"Tank manufacturer-2",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":"for Cleaners, sealers,stains"
+    }
+    ,{
+        "Bar CODE TEXT":"Leica-1",
+        "Consumables":null,
+        "Accessories":"Tripod, Measure rod."
+        ,"Notes":"Take tripod and rod"
+    }
+    ,{
+        "Bar CODE TEXT":"Milwaukee -1",
+        "Consumables":"2x AAA batteries",
+        "Accessories":null,
+        "Notes":"check batteries"
+    }
+    ,{
+        "Bar CODE TEXT":"Hilti-1",
+        "Consumables":"Cut disc max 12(300mm) Arbor 0,787(20mm) or 1(25,4mm)",
+        "Accessories":"2xB 22-255 battery, Fast charger C 6-22, opt. water supply pump",
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Hilti-2",
+        "Consumables":"4xAAA battery",
+        "Accessories":"Case, belt pocket"
+        ,"Notes":"Check battery"
+    },
+    {
+        "Bar CODE TEXT":"Hilti-3",
+        "Consumables":"Jackhammer bits",
+        "Accessories":"Case,Grease, bits",
+        "Notes":"check bits"
+    },
+    {
+        "Bar CODE TEXT":"Hilti-4",
+        "Consumables":"SDS Plus bits",
+        "Accessories":"Case, 1xB22-255 battery, 1xB-22-170 battery, C 4-22charger, grease, concrete drillbits",
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Hilti-5",
+        "Consumables":"GC22 gas canister, nails X-EGN, X-GHP, X-GN, 9\\/16\\ to 1-9\\/16\\",
+        "Accessories":"Case",
+        "Notes":"Check manual for proper nail type"
+    },
+    {
+        "Bar CODE TEXT":"Hilti-6"
+        ,"Consumables":"2xAA battery",
+        "Accessories":"Case, 1xB 12\\/4 battery, C4\\/12-50 charger, 3x attachment, laser sensor PMA 32 + 2xAA battery",
+        "Notes":"Check batteries in sensor, opt. Tripod"
+    },
+    {
+        "Bar CODE TEXT":"Hilti-7",
+        "Consumables":"2xAA battery",
+        "Accessories":"Case, 1xPRA 84 Li-Ion,",
+        "Notes":"Check batteries in sensor, opt. Tripod. NO manual"
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-1",
+        "Consumables":"Saw blade 7-1\\/4\\",
+        "Accessories":null,
+        "Notes":"60Volt battery only + fast charger"
+    },
+    {
+        "Bar CODE TEXT":"Southwire-1",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":"Make sure you will have power supply"
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-2",
+        "Consumables":"Chain N594321 15m\\/s, chain oil",
+        "Accessories":null,
+        "Notes":"Check chain oil level. 60Volt battery only + fast charger"
+    },
+    {
+        "Bar CODE TEXT":"CRL-1",
+        "Consumables":"Sand paper 3x24\\(76x610mm)",
+        "Accessories":null,
+        "Notes":"Sand paper in the black box in shelf."
+    },
+    {
+        "Bar CODE TEXT":"Makita-3",
+        "Consumables":"Sand paper 3x24\\(76x610mm)",
+        "Accessories":null,
+        "Notes":"Sand paper in the black box in shelf."
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-3",
+        "Consumables":null,
+        "Accessories":"20V dewalt battery",
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Makita-4",
+        "Consumables":"2x Planner blades 3-1\\/4\\(82mm)",
+        "Accessories":null,
+        "Notes":"Do you need vacuum?"
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-4",
+        "Consumables":"Nails 15Gauge, DA style, 1-1\\/4\\ - 2-1\\/2\\",
+        "Accessories":null,
+        "Notes":"battery, charger, "
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-5",
+        "Consumables":"Filter",
+        "Accessories":"hose + crevice",
+        "Notes":"battery"
+    },
+    {
+        "Bar CODE TEXT":"Makita-5",
+        "Consumables":"Saw blade 16-5\\/16\\(415mm)",
+        "Accessories":"Storage, guide bracket",
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Skilsaw-1",
+        "Consumables":"chain SPT1500, guide bar SPT1501, chain Oil, Wormdrive oil.",
+        "Accessories":"Storage",
+        "Notes":"check oil condition and level"
+    },
+    {
+        "Bar CODE TEXT":"Marshalltown-1",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":"Make sure you can clean it afte use."
+    },
+    {
+        "Bar CODE TEXT":"Hilti-8",
+        "Consumables":"big Jackhammer bits, grease",
+        "Accessories":"Cart,4 x bit",
+        "Notes":"Grease the bits"
+    },
+    {
+        "Bar CODE TEXT":"Kohler-1",
+        "Consumables":"Gasoline, Gasoline aditive, engine oil, pump oil, air filter, soap (check manual)",
+        "Accessories":null,
+        "Notes":"DO NOT RUN WITHOUT WATER!!! Currently run 2hrs, check manual for servicing, need water supply."
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-6",
+        "Consumables":"12\\ blade",
+        "Accessories":"Stand","Notes":"Use Stihl 2 stroke oil and quality gasoline"
+    },
+    {
+        "Bar CODE TEXT":"Stihl-1",
+        "Consumables":"Gasoline - oil mix",
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-7",
+        "Consumables":"10\\ saw blades",
+        "Accessories":"Stand, guide, angle cutter, upper dust extract, push rod. ",
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Mastercraft-1",
+        "Consumables":"gasoline, oil",
+        "Accessories":"Battery charger, manual",
+        "Notes":"Check oil condition and level."
+    },
+    {
+        "Bar CODE TEXT":"Makita-6",
+        "Consumables":"5\\grinder discs",
+        "Accessories":"tool bag",
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Makita-7",
+        "Consumables":"5\\ grinder discs",
+        "Accessories":"tool bag",
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Makita-8",
+        "Consumables":"5\\ grinder discs",
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Makita-9",
+        "Consumables":"9\\ grinder discs",
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-8",
+        "Consumables":"12\\ blade",
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-9",
+        "Consumables":null,
+        "Accessories":"hose, blow adapters",
+        "Notes":"Drain condensate after use."
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-10",
+        "Consumables":null,
+        "Accessories":"plastic box",
+        "Notes":"Clean and dry after use."
+    },
+    {
+        "Bar CODE TEXT":"Mastercraft-2",
+        "Consumables":null,
+        "Accessories":"2x air-hose on coil",
+        "Notes":"Drain condensate after use."
+    },
+    {
+        "Bar CODE TEXT":"N\\/A-1",
+        "Consumables":null,
+        "Accessories":"plastic box",
+        "Notes":"Clean and dry after use."
+    },
+    {
+        "Bar CODE TEXT":"Aerospace America-1",
+        "Consumables":"filter, pre-filters",
+        "Accessories":"filters, flexi-ducts, duct splitter",
+        "Notes":"Always check condition of filters and revision. Take enough extension cords."
+    },
+    {
+        "Bar CODE TEXT":"Aerospace America-2",
+        "Consumables":"filter, pre-filters",
+        "Accessories":"filters, flexi-ducts, duct splitter",
+        "Notes":"Always check condition of filters and revision. Take enough extension cords."
+    },
+    {
+        "Bar CODE TEXT":"Aerospace America-3",
+        "Consumables":"filter, pre-filters",
+        "Accessories":"filters, flexi-ducts, duct splitter",
+        "Notes":"Always check condition of filters and revision. Take enough extension cords."
+    },
+    {
+        "Bar CODE TEXT":"Aerospace America-4",
+        "Consumables":"filter, pre-filters",
+        "Accessories":"filters, flexi-ducts, duct splitter",
+        "Notes":"Always check condition of filters and revision. Take enough extension cords."
+    },
+    {
+        "Bar CODE TEXT":"Syclone -1",
+        "Consumables":"filter, pre-filters",
+        "Accessories":"filters, flexi-ducts, duct splitter",
+        "Notes":"Always check condition of filters and revision. Take enough extension cords."
+    },
+    {
+        "Bar CODE TEXT":"Aerospace America-5",
+        "Consumables":"filter, pre-filters",
+        "Accessories":"filters, flexi-ducts, duct splitter",
+        "Notes":"Use for regular jobsite. Always check condition of filters and revision. Take enough extension cords."
+    },
+    {
+        "Bar CODE TEXT":"Aerospace America-6",
+        "Consumables":"filter, pre-filters",
+        "Accessories":"filters, flexi-ducts, duct splitter",
+        "Notes":"Always check condition of filters and revision. Take enough extension cords."
+    },
+    {
+        "Bar CODE TEXT":"Aerospace America-7",
+        "Consumables":"filter, pre-filters",
+        "Accessories":"filters, flexi-ducts, duct splitter",
+        "Notes":"Always check condition of filters and revision. Take enough extension cords."
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-11",
+        "Consumables":"paper tape type 13 nails",
+        "Accessories":null,
+        "Notes":"No oil needed."
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-12",
+        "Consumables":"1\\/2\\ drill bits",
+        "Accessories":"Chuck wrench",
+        "Notes":"ONLY 60V flexvolt Battery"
+    },
+    {
+        "Bar CODE TEXT":"Senco-1",
+        "Consumables":"Oil, Nails: Lenght: 1 1\\/2\\-2 1\\/2\\(40-65mm) Diameter: .131\\(3,3mm), .148\\(3,8mm), .162\\(4,1mm) Angle: 34\\u00b0 full round head",
+        "Accessories":null,
+        "Notes":"Do not forget air-tool oil, observe the operating pressure."
+    },
+    {
+        "Bar CODE TEXT":"Metabo-1",
+        "Consumables":"Oil, Nails: 1 1\\/2\\ x .090\\ -  2 1\\/2\\x .099\\",
+        "Accessories":null,
+        "Notes":"Do not forget air-tool oil, observe the operating pressure."
+    },
+    {
+        "Bar CODE TEXT":"Bissett-1",
+        "Consumables":"Oil, Nails Lenght: 1 1\\/5\\(38mm), Diameter: .131\\(3,3mm)and .148\\(3,8mm)",
+        "Accessories":null,"Notes":"Do not forget air-tool oil, observe the operating pressure."
+    },
+    {
+        "Bar CODE TEXT":"Dewalt-13",
+        "Consumables":"Nail: 18Ga brad nails. Lenght: 5\\/8\\-2 1\\/8\\(16-54mm).",
+        "Accessories":"Bag, charger, 2ah battery.",
+        "Notes":"store with charged battery."
+    },
+    {
+        "Bar CODE TEXT":"Leader-1",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-2",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-3",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-4",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-5",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-6",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-7",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-8",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-9",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-10",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-11",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-12",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-13",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-14",
+        "Consumables":null,
+        "Accessories":null
+        ,"Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-15",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-16",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-17",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Fall protection harness-1",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Hilti-9",
+        "Consumables":null,
+        "Accessories":"Case, 1xB12 55 battery, C4\\/12-50 charger, 2x attachment",
+        "Notes":"opt. Tripod"
+    },
+    {
+        "Bar CODE TEXT":null,
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":null,
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":null,
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":null,
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":null,
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-18",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-19",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null
+    },
+    {
+        "Bar CODE TEXT":"Leader-20",
+        "Consumables":null,
+        "Accessories":null,
+        "Notes":null}
+    ];
+
     const video = document.createElement("video");
     const canvasElement = document.getElementById("preview");
     const canvas = canvasElement.getContext("2d");
     const result = document.getElementById("qr-result");
 
-    // Example data for QR code check
+   // Variables for storing QR codes and scanned accessories
+const qrCodes = [];
+const scannedAccessories = [];
 
-    const data = [];
-
-    // Create an array to store the QR codes
-    const qrCodes = [];
-
-    function onScan(qrCode) {
+function onScan(qrCode) {
     if (qrCode) {
         video.pause();
         video.srcObject.getTracks().forEach(track => track.stop());
         canvasElement.hidden = true;
 
-        // Save the QR code to the array
         qrCodes.push(qrCode);
 
-        // Display the QR codes
-        const qrCodesElement = document.getElementById("qr-codes");
-        qrCodesElement.innerHTML = '';
-        qrCodes.forEach((code, index) => {
-            const li = document.createElement('li');
-            li.innerText = `QR Code ${index + 1}: ${code}`;
-            qrCodesElement.appendChild(li);
-        });
+        const matchingEntry = qrDatabase.find(entry => entry['Bar CODE TEXT'] === qrCode);
 
-        // Play the beep sound
-        document.getElementById('beep').play();
-
-        // Find the QR code in the data
-        const matchingRow = data.find(row => row['Bar CODE TEXT'] === qrCode);
-
-        // If there is a matching row
-        if (matchingRow) {
-            // The columns to be displayed
-            const columns = ['Consumables', 'Accessories'];
-
-            columns.forEach(column => {
-                const value = matchingRow[column];
-
-                // If the value is not "N/A", display it
-                if (value !== 'N/A') {
+        if (matchingEntry) {
+            ['Consumables', 'Accessories', 'Notes'].forEach(field => {
+                const value = matchingEntry[field];
+                if (value) {
                     const div = document.createElement('div');
-                    div.innerText = `${column}: ${value}`;
+                    div.innerText = `${field}: ${value}`;
                     result.appendChild(div);
                 }
             });
 
-            // Check if QR code contains "*" or "_"
-            if (qrCode.includes("*") || qrCode.includes("_")) {
-                const warning = document.createElement('div');
-                warning.innerText = 'WARNING: You need to bring special accessories for the job!';
-                warning.style.fontSize = '30px';
-                warning.style.color = 'red';
-                result.appendChild(warning);
+            if (matchingEntry['Accessories']) {
+                scannedAccessories.push(matchingEntry['Accessories']);
             }
+
         } else {
-            // If there is no matching row
             const message = document.createElement('div');
             message.innerText = 'Nothing special required';
             message.style.fontSize = '24px';
@@ -141,67 +639,62 @@
             result.appendChild(message);
         }
 
-        // Remove the message after 3 seconds
         setTimeout(() => {
             result.innerHTML = '';
         }, 3000);
     }
 }
 
-    function tick() {
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvasElement.hidden = false;
+function tick() {
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvasElement.hidden = false;
 
-            canvasElement.height = video.videoHeight;
-            canvasElement.width = video.videoWidth;
-            canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+        canvasElement.height = video.videoHeight;
+        canvasElement.width = video.videoWidth;
+        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+        const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
-            if (code) {
-                onScan(code.data);
-            } else {
-                requestAnimationFrame(tick);
-            }
+        if (code) {
+            onScan(code.data);
         } else {
             requestAnimationFrame(tick);
         }
+    } else {
+        requestAnimationFrame(tick);
     }
+}
 
-    document.getElementById("scan-qr").addEventListener("click", function () {
-        canvasElement.hidden = false;
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true);
-            video.play();
-            requestAnimationFrame(tick);
-        });
+document.getElementById("scan-qr").addEventListener("click", function () {
+    canvasElement.hidden = false;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        video.play();
+        requestAnimationFrame(tick);
     });
+});
 
-    document.getElementById("submit-data").addEventListener("click", function () {
-        const url = 'https://script.google.com/macros/s/AKfycbwCt-qcdYfSa_kTfvr_r-bRMiRUbWEVu5dmNN5FX0qCebKhKtJLj5fUnLaPVQIHI1jG/exec'; // replace with your web app URL
-        const data = {
-            job_number: document.getElementById("job-number").value,
-            email_name: document.getElementById("email-name").value,
-            qr_result: qrCodes.join(", ")
-        };
-
-        fetch(url, {
-            method: 'POST',
-            mode: 'no-cors',
-            cache: 'no-cache',
-            headers : {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
-            console.log('Success:', response);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
+document.getElementById("show-summary").addEventListener("click", function() {
+    const accessoriesList = document.getElementById("accessories-list");
+    accessoriesList.innerHTML = ''; // Clear previous summary
+    
+    scannedAccessories.forEach((accessory, index) => {
+        const li = document.createElement('li');
+        li.innerText = `Accessory ${index + 1}: ${accessory}`;
+        
+        // Add click event to cross out the item
+        li.addEventListener("click", function() {
+            if (li.style.textDecoration === "line-through") {
+                li.style.textDecoration = "none";
+            } else {
+                li.style.textDecoration = "line-through";
+            }
         });
+
+        accessoriesList.appendChild(li);
     });
+});
     </script>
 </body>
 </html>
